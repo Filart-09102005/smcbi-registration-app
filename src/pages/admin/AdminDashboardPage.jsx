@@ -17,8 +17,6 @@ const CHART_COLORS = [
 
 const STATUS_META = [
   { key: 'total', label: 'Total' },
-  { key: 'pending_count', label: 'Pending', color: '#f59e0b' },
-  { key: 'approved_count', label: 'Approved', color: 'var(--color-success)' },
   { key: 'imported_count', label: 'Imported', color: 'var(--color-primary)' },
   { key: 'rejected_count', label: 'Rejected', color: 'var(--color-error)' },
 ]
@@ -161,7 +159,7 @@ function StatCard({ icon: Icon, label, value }) {
 
 function StatusRow({ stats }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+    <div className="grid grid-cols-3 gap-3">
       {STATUS_META.map((item) => (
         <div
           key={item.key}

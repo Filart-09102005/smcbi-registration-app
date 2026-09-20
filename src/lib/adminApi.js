@@ -55,6 +55,12 @@ export async function fetchRegistrations({
   return { rows: data ?? [], total: count ?? 0 }
 }
 
+// A hard ceiling on any single export, independent of what the admin
+// filtered down to. Not about mistrust of the admin - it's a backstop
+// against a runaway script, a compromised session, or a future bug that
+// forgets to filter, pulling the whole table in one request.
+const MAX_EXPORT_ROWS = 5000
+
 /** Every row matching the same search/filters, unpaginated - for exports. */
 export async function fetchAllMatching({ search = '', filters = {} } = {}) {
   let query = supabase.from(TABLE).select(SAFE_COLUMNS)
@@ -72,9 +78,13 @@ export async function fetchAllMatching({ search = '', filters = {} } = {}) {
     query = query.eq(column, value)
   }
 
-  const { data, error } = await query.order('lastname', { ascending: true })
+  const { data, error } = await query
+    .order('lastname', { ascending: true })
+    .range(0, MAX_EXPORT_ROWS - 1)
   if (error) throw error
-  return data ?? []
+
+  const rows = data ?? []
+  return { rows, truncated: rows.length >= MAX_EXPORT_ROWS }
 }
 
 export async function fetchRegistrationById(id) {

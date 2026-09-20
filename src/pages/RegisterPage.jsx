@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PortalShell from '../components/layout/PortalShell'
 import ProgressSteps from '../components/ProgressSteps'
@@ -16,7 +16,7 @@ import {
   validateStepAccount,
 } from '../lib/validation'
 import { isSeniorHigh } from '../lib/academicOptions'
-import { DuplicateBarcodeError, DuplicateEmailError, submitRegistration } from '../lib/registrations'
+import { DuplicateBarcodeError, DuplicateEmailError, RateLimitedError, submitRegistration } from '../lib/registrations'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
 
 const INITIAL_FORM_DATA = {
@@ -38,6 +38,14 @@ const INITIAL_FORM_DATA = {
 
 const TOTAL_STEPS = 5
 
+// Bot deterrents, not the actual security boundary - that's the per-IP rate
+// limit enforced in the database (see migration-005-security-hardening.sql).
+// A hidden field no human ever sees or fills, and a form no human fills in
+// under a few seconds. Both are trivially bypassed by anyone who bothers to
+// read the page source, which is exactly why the database still enforces
+// its own limit regardless of what these catch.
+const MIN_FILL_MS = 3000
+
 const STEP_SUBTITLES = [
   'Choose your role and department',
   'Tell us your academic information',
@@ -55,6 +63,14 @@ export default function RegisterPage() {
   const [barcodeStatus, setBarcodeStatus] = useState({ state: 'idle', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [honeypot, setHoneypot] = useState('')
+  const startedAtRef = useRef(null)
+
+  // Date.now() is impure, so it can't be read directly during render - set
+  // once, on mount, same as the timer it feeds.
+  useEffect(() => {
+    startedAtRef.current = Date.now()
+  }, [])
 
   function setField(name, value) {
     setFormData((prev) => {
@@ -135,12 +151,26 @@ export default function RegisterPage() {
 
   async function handleSubmit() {
     setSubmitError('')
+
+    // A filled honeypot or an implausibly fast submission is treated as a
+    // bot, not an error - fake the same success a real submission gets
+    // (without ever calling submitRegistration) so nothing here tips off an
+    // automated client that it was caught, and it doesn't just retry harder.
+    if (honeypot.trim() || Date.now() - startedAtRef.current < MIN_FILL_MS) {
+      navigate('/success', { state: { firstName: formData.firstName } })
+      return
+    }
+
     setSubmitting(true)
     try {
       await submitRegistration(formData)
       navigate('/success', { state: { firstName: formData.firstName } })
     } catch (error) {
-      if (error instanceof DuplicateEmailError || error instanceof DuplicateBarcodeError) {
+      if (
+        error instanceof DuplicateEmailError ||
+        error instanceof DuplicateBarcodeError ||
+        error instanceof RateLimitedError
+      ) {
         setSubmitError(error.message)
       } else {
         setSubmitError('Something went wrong while submitting your registration. Please try again.')
@@ -168,6 +198,26 @@ export default function RegisterPage() {
       title="Create account"
       subtitle={`Step ${step} of ${TOTAL_STEPS} - ${STEP_SUBTITLES[step - 1]}`}
     >
+      {/* Honeypot: invisible to a real visitor (off-screen, unreachable by
+          Tab, excluded from screen readers), but a naive bot that
+          autofills every input on the page will fill it. Bait name chosen
+          to read as a normal field to something scanning the DOM. */}
+      <div
+        aria-hidden="true"
+        style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}
+      >
+        <label htmlFor="company">Company</label>
+        <input
+          id="company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(event) => setHoneypot(event.target.value)}
+        />
+      </div>
+
       <ProgressSteps currentStep={step} />
 
       <div className="rounded-xl border p-5 auth-panel sm:p-8">

@@ -27,9 +27,16 @@ export default function AdminLoginPage() {
       await signIn(email.trim(), password)
       navigate('/admin', { replace: true })
     } catch (err) {
-      setError(err?.message === 'Invalid login credentials'
-        ? 'Incorrect email or password.'
-        : err?.message || 'Could not sign in. Please try again.')
+      // Never surface the raw Supabase error - only these two cases carry
+      // anything a user needs to act on; everything else (network errors,
+      // unexpected Auth responses) could otherwise leak internal details.
+      if (err?.message === 'Invalid login credentials') {
+        setError('Incorrect email or password.')
+      } else if (err?.message === 'This account is not authorized to access the admin dashboard.') {
+        setError(err.message)
+      } else {
+        setError('Could not sign in. Please try again.')
+      }
     } finally {
       setSubmitting(false)
     }

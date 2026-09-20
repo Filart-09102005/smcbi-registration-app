@@ -19,6 +19,13 @@ export class DuplicateBarcodeError extends Error {
   }
 }
 
+export class RateLimitedError extends Error {
+  constructor() {
+    super('Too many registration attempts from this network. Please try again in a bit.')
+    this.name = 'RateLimitedError'
+  }
+}
+
 export async function checkEmailExists(email) {
   const { data, error } = await supabase.rpc('check_email_exists', {
     p_email: email.trim().toLowerCase(),
@@ -65,6 +72,9 @@ export async function submitRegistration(formData) {
     if (error.code === UNIQUE_VIOLATION) {
       if (error.message?.includes('barcode')) throw new DuplicateBarcodeError()
       throw new DuplicateEmailError()
+    }
+    if (error.message?.includes('Too many registration attempts')) {
+      throw new RateLimitedError()
     }
     throw error
   }

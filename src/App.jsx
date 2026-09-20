@@ -5,7 +5,6 @@ import SuccessPage from './pages/SuccessPage'
 import AdminLoginPage from './pages/admin/AdminLoginPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminStudentsPage from './pages/admin/AdminStudentsPage'
-import AdminImportExportPage from './pages/admin/AdminImportExportPage'
 import ProtectedRoute from './components/admin/ProtectedRoute'
 import { AdminAuthProvider } from './context/AdminAuthContext'
 
@@ -39,14 +38,6 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminStudentsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/import-export"
-          element={
-            <ProtectedRoute>
-              <AdminImportExportPage />
             </ProtectedRoute>
           }
         />

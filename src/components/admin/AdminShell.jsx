@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, Menu, Users, X, FileOutput } from 'lucide-react'
+import { LayoutDashboard, LogOut, Menu, Users, X } from 'lucide-react'
 import { useAdminAuth } from '../../context/useAdminAuth'
 import ConfirmDialog from './ConfirmDialog'
 
 const NAV_ITEMS = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/students', label: 'Students', icon: Users },
-  { to: '/admin/import-export', label: 'Import/Export', icon: FileOutput },
 ]
 
 export default function AdminShell({ children }) {

@@ -13,13 +13,19 @@ create table if not exists public.student_registrations (
 
   role text not null default 'student' check (role in ('student', 'personnel')),
 
-  firstname text not null check (length(trim(firstname)) > 0),
-  lastname text not null check (length(trim(lastname)) > 0),
+  -- Length caps alongside the non-empty checks: text has no length limit by
+  -- default, and nothing else stops a request from submitting a
+  -- multi-megabyte string as a name - cheap storage-exhaustion abuse, free
+  -- of any rate limit since it's a single request either way.
+  firstname text not null check (length(trim(firstname)) > 0 and char_length(firstname) <= 100),
+  lastname text not null check (length(trim(lastname)) > 0 and char_length(lastname) <= 100),
   -- The same number already printed as a barcode on the person's physical
   -- school ID, typed in at registration rather than generated later - so
   -- scanning that card at the kiosk lines up with what they registered here.
-  barcode text not null check (length(trim(barcode)) > 0),
-  email text not null check (email = lower(email) and email like '%@smcbi.edu.ph'),
+  barcode text not null check (length(trim(barcode)) > 0 and char_length(barcode) <= 50),
+  email text not null check (
+    email = lower(email) and email like '%@smcbi.edu.ph' and char_length(email) <= 255
+  ),
   password_hash text not null,
 
   birthday date not null check (birthday < current_date),
@@ -289,3 +295,84 @@ $$;
 
 revoke all on function public.registration_distribution() from public;
 grant execute on function public.registration_distribution() to authenticated;
+
+-- Registration rate limiting ---------------------------------------------
+-- Supabase's PostgREST does not throttle table inserts by IP on its own,
+-- and this app has no server component to do it in - so without this,
+-- nothing stops a script from submitting unlimited registrations. Enforced
+-- here, the one place every insert must pass through regardless of what
+-- client sent it, using the 'x-forwarded-for' header PostgREST exposes to
+-- Postgres as a GUC. The attempts table holds only IP + timestamp.
+
+create table if not exists public.registration_attempts (
+  id bigserial primary key,
+  ip_address text not null,
+  attempted_at timestamptz not null default now()
+);
+
+create index if not exists registration_attempts_ip_time_idx
+  on public.registration_attempts (ip_address, attempted_at);
+
+-- No policies at all, not even for admins - RLS with zero policies denies
+-- every direct client request by default. Only the security definer
+-- trigger function below touches this table.
+alter table public.registration_attempts enable row level security;
+
+create or replace function public.prune_registration_attempts()
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.registration_attempts where attempted_at < now() - interval '24 hours';
+$$;
+
+create or replace function public.enforce_registration_rate_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  client_ip text;
+  recent_count integer;
+  max_attempts constant integer := 5;
+  window_minutes constant integer := 60;
+begin
+  begin
+    client_ip := split_part(
+      coalesce(current_setting('request.headers', true)::json ->> 'x-forwarded-for', 'unknown'),
+      ',', 1
+    );
+  exception when others then
+    client_ip := 'unknown';
+  end;
+
+  select count(*) into recent_count
+  from public.registration_attempts
+  where ip_address = client_ip
+    and attempted_at > now() - (window_minutes || ' minutes')::interval;
+
+  if recent_count >= max_attempts then
+    raise exception 'Too many registration attempts from this network. Please try again later.'
+      using errcode = 'P0001';
+  end if;
+
+  insert into public.registration_attempts (ip_address) values (client_ip);
+
+  -- Runs probabilistically rather than on every insert, so pruning doesn't
+  -- add a delete query's cost to every single registration.
+  if random() < 0.05 then
+    perform public.prune_registration_attempts();
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_registration_rate_limit on public.student_registrations;
+
+create trigger trg_registration_rate_limit
+  before insert on public.student_registrations
+  for each row
+  execute function public.enforce_registration_rate_limit();

@@ -35,7 +35,7 @@ const STAGES = [
 const MIN_VISIBLE_MS = 900
 const SUCCESS_HOLD_MS = 1400
 
-export default function ExportOverlay({ open, format, status, count = 0, resultAction = 'downloaded', onDone, onRetry }) {
+export default function ExportOverlay({ open, format, status, count = 0, truncated = false, resultAction = 'downloaded', onDone, onRetry }) {
   const [stageIndex, setStageIndex] = useState(0)
   const openedAtRef = useRef(0)
 
@@ -93,7 +93,9 @@ export default function ExportOverlay({ open, format, status, count = 0, resultA
   const title = succeeded ? `${formatLabel} Export Ready` : failed ? `Unable to Generate ${formatLabel}` : `Generating ${formatLabel} Export`
   const blurb = succeeded
     ? count > 0
-      ? `Your ${formatLabel} file has been ${resultAction}. ${count.toLocaleString()} ${count === 1 ? 'record' : 'records'} included.`
+      ? `Your ${formatLabel} file has been ${resultAction}. ${count.toLocaleString()} ${count === 1 ? 'record' : 'records'} included.${
+          truncated ? ' The result set was capped at this size - narrow your filters to get the rest.' : ''
+        }`
       : `Your ${formatLabel} file has been ${resultAction}.`
     : failed
       ? "We couldn't complete this export. Please try again."

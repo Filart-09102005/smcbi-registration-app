@@ -50,7 +50,7 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-const EMPTY_EXPORT = { open: false, format: null, status: 'running', count: 0 }
+const EMPTY_EXPORT = { open: false, format: null, status: 'running', count: 0, truncated: false }
 
 export default function RegistrationSection({ onOpenDetail, refreshToken }) {
   const [search, setSearch] = useState('')
@@ -180,11 +180,11 @@ export default function RegistrationSection({ onOpenDetail, refreshToken }) {
 
     setExportState({ open: true, format, status: 'running', count: 0 })
     try {
-      const matching = await fetchAllMatching({ search, filters: activeFilters })
+      const { rows: matching, truncated } = await fetchAllMatching({ search, filters: activeFilters })
       const filename = 'smcbi-students'
       if (format === 'pdf') await exportPDF(matching, `${filename}.pdf`, pdfWindow)
       else await exportExcel(matching, `${filename}.xlsx`)
-      setExportState({ open: true, format, status: 'success', count: matching.length })
+      setExportState({ open: true, format, status: 'success', count: matching.length, truncated })
     } catch {
       pdfWindow?.close()
       setExportState({ open: true, format, status: 'error', count: 0 })
@@ -518,6 +518,7 @@ export default function RegistrationSection({ onOpenDetail, refreshToken }) {
         format={exportState.format}
         status={exportState.status}
         count={exportState.count}
+        truncated={exportState.truncated}
         resultAction={exportState.format === 'pdf' ? 'opened in a new tab' : 'downloaded'}
         onDone={() => setExportState(EMPTY_EXPORT)}
         onRetry={() => runExport(exportState.format)}
