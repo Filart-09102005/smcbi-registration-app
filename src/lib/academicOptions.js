@@ -1,7 +1,29 @@
-export const DEPARTMENTS = [
+export const ROLES = [
+  { value: 'student', label: 'Student' },
+  { value: 'personnel', label: 'Personnel' },
+]
+
+export const STUDENT_DEPARTMENTS = [
   { value: 'COLLEGE', label: 'College' },
   { value: 'BED', label: 'Basic Education (BED)' },
 ]
+
+export const STAFF_DEPARTMENTS = [
+  { value: 'COLLEGE INSTRUCTOR', label: 'College Instructor' },
+  { value: 'BED INSTRUCTOR', label: 'Basic Education (BED) Instructor' },
+  { value: 'NTP', label: 'Non-Teaching Personnel (NTP)' },
+]
+
+export function departmentsForRole(role) {
+  return role === 'personnel' ? STAFF_DEPARTMENTS : STUDENT_DEPARTMENTS
+}
+
+export function isStaffDepartment(department) {
+  return STAFF_DEPARTMENTS.some((option) => option.value === department)
+}
+
+// Kept for callers that only ever dealt with student registrations.
+export const DEPARTMENTS = STUDENT_DEPARTMENTS
 
 export const PROGRAMS = [
   { value: 'BSIT', label: 'BSIT' },

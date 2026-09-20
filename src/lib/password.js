@@ -21,7 +21,7 @@ export function isPasswordValid(password) {
 
 export function getPasswordStrength(password) {
   const pw = password || ''
-  if (!pw) return { score: 0, label: 'Enter a password' }
+  if (!pw) return { score: 0, label: 'Enter a password', hex: 'var(--color-muted)' }
 
   const passedCount = evaluatePassword(pw).filter((rule) => rule.passed).length
   let score = passedCount
@@ -30,12 +30,12 @@ export function getPasswordStrength(password) {
   score = Math.min(score, 5)
 
   const levels = [
-    { label: 'Very weak', color: 'bg-red-500' },
-    { label: 'Weak', color: 'bg-red-500' },
-    { label: 'Fair', color: 'bg-amber-500' },
-    { label: 'Good', color: 'bg-amber-500' },
-    { label: 'Strong', color: 'bg-green-600' },
-    { label: 'Very strong', color: 'bg-green-600' },
+    { label: 'Weak', hex: 'var(--color-error)' },
+    { label: 'Weak', hex: 'var(--color-error)' },
+    { label: 'Fair', hex: 'var(--color-primary)' },
+    { label: 'Good', hex: 'var(--color-primary)' },
+    { label: 'Strong', hex: 'var(--color-success)' },
+    { label: 'Very strong', hex: 'var(--color-success)' },
   ]
 
   return { score, ...levels[score] }

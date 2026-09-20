@@ -12,6 +12,13 @@ export class DuplicateEmailError extends Error {
   }
 }
 
+export class DuplicateBarcodeError extends Error {
+  constructor() {
+    super('This School ID is already registered.')
+    this.name = 'DuplicateBarcodeError'
+  }
+}
+
 export async function checkEmailExists(email) {
   const { data, error } = await supabase.rpc('check_email_exists', {
     p_email: email.trim().toLowerCase(),
@@ -21,23 +28,34 @@ export async function checkEmailExists(email) {
   return Boolean(data)
 }
 
+export async function checkBarcodeExists(barcode) {
+  const { data, error } = await supabase.rpc('check_barcode_exists', {
+    p_barcode: barcode.trim(),
+  })
+
+  if (error) throw error
+  return Boolean(data)
+}
+
 export async function submitRegistration(formData) {
   const passwordHash = await bcrypt.hash(formData.password, BCRYPT_ROUNDS)
   const seniorHigh = isSeniorHigh(formData.gradeLevel)
+  const isStudent = formData.role !== 'personnel'
 
   const payload = {
-    role: 'student',
+    role: formData.role,
     firstname: formData.firstName.trim(),
     lastname: formData.lastName.trim(),
     email: formData.email.trim().toLowerCase(),
+    barcode: formData.schoolId.trim(),
     password_hash: passwordHash,
     birthday: formData.birthday,
     gender: formData.gender,
     department: formData.department,
-    program: formData.department === 'COLLEGE' ? formData.program : null,
-    year_level: formData.department === 'COLLEGE' ? formData.yearLevel : null,
-    grade_level: formData.department === 'BED' ? formData.gradeLevel : null,
-    strand: formData.department === 'BED' && seniorHigh ? formData.strand : null,
+    program: isStudent && formData.department === 'COLLEGE' ? formData.program : null,
+    year_level: isStudent && formData.department === 'COLLEGE' ? formData.yearLevel : null,
+    grade_level: isStudent && formData.department === 'BED' ? formData.gradeLevel : null,
+    strand: isStudent && formData.department === 'BED' && seniorHigh ? formData.strand : null,
     status: 'pending',
   }
 
@@ -45,6 +63,7 @@ export async function submitRegistration(formData) {
 
   if (error) {
     if (error.code === UNIQUE_VIOLATION) {
+      if (error.message?.includes('barcode')) throw new DuplicateBarcodeError()
       throw new DuplicateEmailError()
     }
     throw error

@@ -1,12 +1,22 @@
-const STYLES = {
-  error: 'border-red-200 bg-red-50 text-red-800',
-  success: 'border-green-200 bg-green-50 text-green-800',
-  info: 'border-primary-200 bg-primary-50 text-primary-900',
+const VARIANT_COLOR = {
+  error: 'var(--color-error)',
+  success: 'var(--color-success)',
+  info: 'var(--color-primary)',
 }
 
 export default function Alert({ variant = 'info', children }) {
+  const color = VARIANT_COLOR[variant]
+
   return (
-    <div className={`rounded-lg border px-4 py-3 text-sm ${STYLES[variant]}`} role="alert">
+    <div
+      className="rounded-xl border px-4 py-3 text-sm font-semibold"
+      style={{
+        borderColor: color,
+        color,
+        backgroundColor: `color-mix(in srgb, ${color}, transparent 90%)`,
+      }}
+      role="alert"
+    >
       {children}
     </div>
   )

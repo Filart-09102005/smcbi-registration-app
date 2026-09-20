@@ -1,15 +1,13 @@
 import OptionCards from '../ui/OptionCards'
-import { DEPARTMENTS } from '../../lib/academicOptions'
-
-const ROLES = [{ value: 'student', label: 'Student' }]
+import { ROLES, departmentsForRole } from '../../lib/academicOptions'
 
 export default function StepRoleDepartment({ formData, errors, setField }) {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Role &amp; Department</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          This portal is currently for student registration only.
+        <h2 className="text-xl font-black auth-strong-text">Role &amp; Department</h2>
+        <p className="mt-1 text-sm font-semibold auth-muted-text">
+          Select your role, then your department.
         </p>
       </div>
 
@@ -20,13 +18,12 @@ export default function StepRoleDepartment({ formData, errors, setField }) {
         value={formData.role}
         onChange={setField}
         error={errors.role}
-        columns={1}
       />
 
       <OptionCards
         label="Department"
         name="department"
-        options={DEPARTMENTS}
+        options={departmentsForRole(formData.role)}
         value={formData.department}
         onChange={setField}
         error={errors.department}

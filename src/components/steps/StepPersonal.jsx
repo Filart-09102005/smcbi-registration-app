@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react'
+import { IdCard, Mail, UserRound } from 'lucide-react'
 import TextField from '../ui/TextField'
 import OptionCards from '../ui/OptionCards'
+import BirthdayPicker from '../ui/BirthdayPicker'
 import { GENDERS } from '../../lib/academicOptions'
 import { calculateAge, isValidSchoolEmail } from '../../lib/validation'
-import { checkEmailExists } from '../../lib/registrations'
+import { checkBarcodeExists, checkEmailExists } from '../../lib/registrations'
 import { isSupabaseConfigured } from '../../lib/supabaseClient'
-
-const TODAY = new Date().toISOString().split('T')[0]
 
 export default function StepPersonal({
   formData,
@@ -14,8 +14,11 @@ export default function StepPersonal({
   setField,
   emailStatus,
   setEmailStatus,
+  barcodeStatus,
+  setBarcodeStatus,
 }) {
   const lastChecked = useRef('')
+  const lastCheckedBarcode = useRef('')
 
   useEffect(() => {
     const email = formData.email.trim().toLowerCase()
@@ -54,13 +57,50 @@ export default function StepPersonal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.email])
 
+  useEffect(() => {
+    const barcode = formData.schoolId.trim()
+
+    if (!barcode) {
+      setBarcodeStatus({ state: 'idle', message: '' })
+      return undefined
+    }
+
+    if (barcode === lastCheckedBarcode.current) return undefined
+
+    setBarcodeStatus({ state: 'checking', message: 'Checking availability…' })
+
+    const timer = setTimeout(async () => {
+      if (!isSupabaseConfigured) {
+        setBarcodeStatus({ state: 'idle', message: '' })
+        return
+      }
+      try {
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 6000),
+        )
+        const exists = await Promise.race([checkBarcodeExists(barcode), timeout])
+        lastCheckedBarcode.current = barcode
+        setBarcodeStatus(
+          exists
+            ? { state: 'taken', message: 'This School ID has already been registered.' }
+            : { state: 'available', message: 'School ID is available.' },
+        )
+      } catch {
+        setBarcodeStatus({ state: 'error', message: 'Could not verify School ID right now.' })
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.schoolId])
+
   const age = calculateAge(formData.birthday)
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
-        <p className="mt-1 text-sm text-gray-500">Enter your personal details.</p>
+        <h2 className="text-xl font-black auth-strong-text">Personal Information</h2>
+        <p className="mt-1 text-sm font-semibold auth-muted-text">Enter your personal details.</p>
       </div>
 
       <TextField
@@ -70,6 +110,7 @@ export default function StepPersonal({
         onChange={setField}
         error={errors.firstName}
         autoComplete="given-name"
+        icon={UserRound}
       />
 
       <TextField
@@ -79,6 +120,23 @@ export default function StepPersonal({
         onChange={setField}
         error={errors.lastName}
         autoComplete="family-name"
+        icon={UserRound}
+      />
+
+      <TextField
+        label="School ID"
+        name="schoolId"
+        value={formData.schoolId}
+        onChange={setField}
+        error={errors.schoolId || (barcodeStatus.state === 'taken' ? barcodeStatus.message : '')}
+        placeholder="e.g. 21-0001"
+        autoComplete="off"
+        icon={IdCard}
+        helperText={
+          !errors.schoolId && barcodeStatus.state !== 'taken'
+            ? barcodeStatus.message || 'This is the same ID printed as the barcode on your school ID card.'
+            : ''
+        }
       />
 
       <TextField
@@ -90,6 +148,7 @@ export default function StepPersonal({
         error={errors.email || (emailStatus.state === 'taken' ? emailStatus.message : '')}
         placeholder="juan.delacruz@smcbi.edu.ph"
         autoComplete="email"
+        icon={Mail}
         helperText={
           !errors.email && emailStatus.state !== 'taken'
             ? emailStatus.message || 'Use your official @smcbi.edu.ph email address.'
@@ -97,15 +156,25 @@ export default function StepPersonal({
         }
       />
 
-      <TextField
+      <BirthdayPicker
         label="Birthday"
         name="birthday"
-        type="date"
         value={formData.birthday}
         onChange={setField}
         error={errors.birthday}
-        max={TODAY}
-        helperText={age !== null ? `Age: ${age} years old` : ''}
+        badge={
+          age !== null ? (
+            <span
+              className="rounded-md px-2 py-0.5 text-[10px] font-bold"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
+                color: 'var(--color-primary)',
+              }}
+            >
+              {age} years old
+            </span>
+          ) : null
+        }
       />
 
       <OptionCards

@@ -16,7 +16,7 @@ import {
   validateStepAccount,
 } from '../lib/validation'
 import { isSeniorHigh } from '../lib/academicOptions'
-import { DuplicateEmailError, submitRegistration } from '../lib/registrations'
+import { DuplicateBarcodeError, DuplicateEmailError, submitRegistration } from '../lib/registrations'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
 
 const INITIAL_FORM_DATA = {
@@ -28,6 +28,7 @@ const INITIAL_FORM_DATA = {
   strand: '',
   firstName: '',
   lastName: '',
+  schoolId: '',
   email: '',
   birthday: '',
   gender: '',
@@ -37,23 +38,35 @@ const INITIAL_FORM_DATA = {
 
 const TOTAL_STEPS = 5
 
+const STEP_SUBTITLES = [
+  'Choose your role and department',
+  'Tell us your academic information',
+  'Complete your personal details',
+  'Create your account password',
+  'Review and submit your registration',
+]
+
 export default function RegisterPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState(INITIAL_FORM_DATA)
   const [errors, setErrors] = useState({})
   const [emailStatus, setEmailStatus] = useState({ state: 'idle', message: '' })
+  const [barcodeStatus, setBarcodeStatus] = useState({ state: 'idle', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
   function setField(name, value) {
     setFormData((prev) => {
       const next = { ...prev, [name]: value }
-      if (name === 'department') {
+      if (name === 'role' || name === 'department') {
         next.program = ''
         next.yearLevel = ''
         next.gradeLevel = ''
         next.strand = ''
+      }
+      if (name === 'role') {
+        next.department = ''
       }
       if (name === 'gradeLevel' && !isSeniorHigh(value)) {
         next.strand = ''
@@ -64,11 +77,14 @@ export default function RegisterPage() {
     setErrors((prev) => {
       const next = { ...prev }
       delete next[name]
-      if (name === 'department') {
+      if (name === 'role' || name === 'department') {
         delete next.program
         delete next.yearLevel
         delete next.gradeLevel
         delete next.strand
+      }
+      if (name === 'role') {
+        delete next.department
       }
       if (name === 'gradeLevel') {
         delete next.strand
@@ -100,6 +116,13 @@ export default function RegisterPage() {
           stepErrors.email = emailStatus.message
         }
       }
+      if (!stepErrors.schoolId) {
+        if (barcodeStatus.state === 'checking') {
+          stepErrors.schoolId = 'Please wait while we verify your School ID.'
+        } else if (barcodeStatus.state === 'taken') {
+          stepErrors.schoolId = barcodeStatus.message
+        }
+      }
     }
     if (step === 4) stepErrors = validateStepAccount(formData)
 
@@ -117,7 +140,7 @@ export default function RegisterPage() {
       await submitRegistration(formData)
       navigate('/success', { state: { firstName: formData.firstName } })
     } catch (error) {
-      if (error instanceof DuplicateEmailError) {
+      if (error instanceof DuplicateEmailError || error instanceof DuplicateBarcodeError) {
         setSubmitError(error.message)
       } else {
         setSubmitError('Something went wrong while submitting your registration. Please try again.')
@@ -129,7 +152,7 @@ export default function RegisterPage() {
 
   if (!isSupabaseConfigured) {
     return (
-      <PortalShell>
+      <PortalShell eyebrow="Registration" title="Create account">
         <Alert variant="error">
           Supabase is not configured. Set <code>VITE_SUPABASE_URL</code> and{' '}
           <code>VITE_SUPABASE_ANON_KEY</code> in your <code>.env</code> file, then restart the dev
@@ -140,10 +163,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <PortalShell>
+    <PortalShell
+      eyebrow="Registration"
+      title="Create account"
+      subtitle={`Step ${step} of ${TOTAL_STEPS} - ${STEP_SUBTITLES[step - 1]}`}
+    >
       <ProgressSteps currentStep={step} />
 
-      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-8">
+      <div className="rounded-xl border p-5 auth-panel sm:p-8">
         {step === 1 && (
           <StepRoleDepartment formData={formData} errors={errors} setField={setField} />
         )}
@@ -155,12 +182,17 @@ export default function RegisterPage() {
             setField={setField}
             emailStatus={emailStatus}
             setEmailStatus={setEmailStatus}
+            barcodeStatus={barcodeStatus}
+            setBarcodeStatus={setBarcodeStatus}
           />
         )}
         {step === 4 && <StepAccount formData={formData} errors={errors} setField={setField} />}
         {step === 5 && <StepReview formData={formData} submitError={submitError} />}
 
-        <div className="mt-8 flex flex-col-reverse gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:justify-between">
+        <div
+          className="mt-8 flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-between"
+          style={{ borderColor: 'var(--auth-border)' }}
+        >
           <Button variant="secondary" onClick={handleBack} disabled={submitting}>
             Back
           </Button>

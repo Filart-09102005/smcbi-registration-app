@@ -14,6 +14,11 @@ export function validateStepRoleDepartment(formData) {
 export function validateStepAcademic(formData) {
   const errors = {}
 
+  if (formData.role === 'personnel') {
+    if (!formData.department) errors.department = 'Please select your department.'
+    return errors
+  }
+
   if (formData.department === 'COLLEGE') {
     if (!formData.program) errors.program = 'Please select your program/course.'
     if (!formData.yearLevel) errors.yearLevel = 'Please select your year level.'
@@ -63,6 +68,10 @@ export function validateStepPersonal(formData) {
 
   if (!formData.firstName.trim()) errors.firstName = 'Please enter your first name.'
   if (!formData.lastName.trim()) errors.lastName = 'Please enter your last name.'
+
+  if (!formData.schoolId.trim()) {
+    errors.schoolId = 'Please enter your School ID.'
+  }
 
   if (!formData.email.trim()) {
     errors.email = 'Please enter your school email.'

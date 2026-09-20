@@ -2,16 +2,198 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme tokens mirrored from the SMCBI Health Kiosk (resources/css/app.css)
+   so this standalone portal matches its dark/light auth screens exactly. */
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f8fafc;
+  --color-card: #ffffff;
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+
+  --auth-bg: #f8fbff;
+  --auth-grid: rgba(15, 23, 42, 0.055);
+  --auth-glow-a: rgba(37, 99, 235, 0.14);
+  --auth-glow-b: rgba(14, 165, 233, 0.1);
+  --auth-overlay: rgba(255, 255, 255, 0.34);
+  --auth-text: #0f172a;
+  --auth-muted: #526173;
+  --auth-panel: rgba(255, 255, 255, 0.72);
+  --auth-control: rgba(255, 255, 255, 0.82);
+  --auth-border: rgba(15, 23, 42, 0.12);
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #000000;
+  --color-surface: #050505;
+  --color-card: #0b0b0b;
+  --color-text: #f5f5f5;
+  --color-muted: #a3a3a3;
+  --color-border: #262626;
+
+  --color-primary: #60a5fa;
+  --color-primary-hover: #93c5fd;
+
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+
+  --auth-bg: #020403;
+  --auth-grid: rgba(255, 255, 255, 0.024);
+  --auth-glow-a: rgba(96, 165, 250, 0.12);
+  --auth-glow-b: rgba(37, 99, 235, 0.1);
+  --auth-overlay: rgba(0, 0, 0, 0.22);
+  --auth-text: #ffffff;
+  --auth-muted: #c7cbd1;
+  --auth-panel: rgba(255, 255, 255, 0.045);
+  --auth-control: rgba(255, 255, 255, 0.06);
+  --auth-border: rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-bg: #000000;
+    --color-surface: #050505;
+    --color-card: #0b0b0b;
+    --color-text: #f5f5f5;
+    --color-muted: #a3a3a3;
+    --color-border: #262626;
+
+    --color-primary: #60a5fa;
+    --color-primary-hover: #93c5fd;
+
+    --color-success: #22c55e;
+    --color-error: #ef4444;
+
+    --auth-bg: #020403;
+    --auth-grid: rgba(255, 255, 255, 0.024);
+    --auth-glow-a: rgba(96, 165, 250, 0.12);
+    --auth-glow-b: rgba(37, 99, 235, 0.1);
+    --auth-overlay: rgba(0, 0, 0, 0.22);
+    --auth-text: #ffffff;
+    --auth-muted: #c7cbd1;
+    --auth-panel: rgba(255, 255, 255, 0.045);
+    --auth-control: rgba(255, 255, 255, 0.06);
+    --auth-border: rgba(255, 255, 255, 0.1);
+  }
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    color-scheme: light;
+  }
+
+  html[data-theme='dark'] {
+    color-scheme: dark;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    background: var(--color-bg);
+    color: var(--color-text);
+    transition:
+      background-color 180ms ease,
+      color 180ms ease;
   }
 
   input[type='date']::-webkit-calendar-picker-indicator {
     cursor: pointer;
+    filter: var(--auth-date-icon-filter, none);
   }
+}
+
+:root[data-theme='dark'] input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+.auth-screen {
+  background:
+    radial-gradient(circle at 35% 18%, var(--auth-glow-a), transparent 28rem),
+    radial-gradient(circle at 72% 72%, var(--auth-glow-b), transparent 24rem),
+    linear-gradient(var(--auth-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--auth-grid) 1px, transparent 1px), var(--auth-bg);
+  background-size:
+    auto,
+    auto,
+    45px 45px,
+    45px 45px,
+    auto;
+  color: var(--auth-text);
+  position: relative;
+}
+
+.auth-screen::after {
+  background: linear-gradient(90deg, var(--auth-overlay), transparent 42%, var(--auth-overlay));
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.auth-logo {
+  align-items: center;
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  border-radius: 1rem;
+  box-shadow: 0 22px 50px rgba(37, 99, 235, 0.24);
+  color: #ffffff;
+  display: flex;
+  height: 3.25rem;
+  justify-content: center;
+  width: 3.25rem;
+}
+
+.auth-eyebrow {
+  align-items: center;
+  display: flex;
+  font-size: 0.8rem;
+  font-weight: 900;
+  gap: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.auth-eyebrow::before {
+  background: currentColor;
+  content: '';
+  height: 2px;
+  width: 1.25rem;
+}
+
+.auth-strong-text {
+  color: var(--auth-text);
+}
+
+.auth-muted-text {
+  color: var(--auth-muted);
+}
+
+.auth-panel {
+  background: var(--auth-panel);
+  border-color: var(--auth-border);
+}
+
+.auth-control {
+  background: var(--auth-control);
+  border-color: var(--auth-border);
+  color: var(--auth-text);
+}
+
+.auth-control::placeholder {
+  color: var(--auth-muted);
+}
+
+.hk-auth-form-scroll {
+  scrollbar-color: transparent transparent;
+  scrollbar-width: none;
+}
+
+.hk-auth-form-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }

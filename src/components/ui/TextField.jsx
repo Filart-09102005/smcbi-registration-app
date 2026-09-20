@@ -13,15 +13,20 @@ export default function TextField({
   max,
   helperText,
   required = true,
+  icon: Icon,
   rightElement,
 }) {
   return (
     <div>
-      <label htmlFor={name} className="mb-1.5 block text-sm font-medium text-gray-800">
+      <label htmlFor={name} className="text-sm font-black auth-strong-text">
         {label}
-        {required && <span className="text-red-600"> *</span>}
+        {required && <span style={{ color: 'var(--color-error)' }}> *</span>}
       </label>
-      <div className="relative">
+      <div
+        className="mt-2 flex h-[3.25rem] items-center gap-3 rounded-xl border px-4 auth-control"
+        style={{ borderColor: error ? 'var(--color-error)' : undefined }}
+      >
+        {Icon ? <Icon size={18} style={{ color: 'var(--color-muted)' }} /> : null}
         <input
           id={name}
           name={name}
@@ -34,15 +39,13 @@ export default function TextField({
           onBlur={onBlur}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${name}-error` : undefined}
-          className={`min-h-[48px] w-full rounded-lg border bg-white px-4 py-3 text-base text-gray-900 outline-none transition-colors focus:border-primary-700 focus:ring-2 focus:ring-primary-100 ${
-            error ? 'border-red-400' : 'border-gray-300'
-          } ${rightElement ? 'pr-12' : ''}`}
+          className="w-full bg-transparent text-sm font-semibold outline-none"
         />
-        {rightElement && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">{rightElement}</div>
-        )}
+        {rightElement}
       </div>
-      {helperText && !error && <p className="mt-1.5 text-sm text-gray-500">{helperText}</p>}
+      {helperText && !error && (
+        <p className="mt-1.5 text-xs font-semibold auth-muted-text">{helperText}</p>
+      )}
       <div id={`${name}-error`}>
         <FieldError>{error}</FieldError>
       </div>

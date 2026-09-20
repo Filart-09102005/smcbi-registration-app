@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { CheckCircle2, KeyRound, UserPlus } from 'lucide-react'
+import Button from '../components/ui/Button'
 import PortalShell from '../components/layout/PortalShell'
 
 export default function SuccessPage() {
@@ -14,31 +16,48 @@ export default function SuccessPage() {
   if (!state) return null
 
   return (
-    <PortalShell>
-      <div className="flex flex-col items-center py-10 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-600">
-          ✓
+    <PortalShell eyebrow="Success" title="Thank you!">
+      <div className="flex flex-col items-center rounded-xl border p-8 text-center auth-panel">
+        <div
+          className="flex h-16 w-16 items-center justify-center rounded-full"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-success), transparent 85%)',
+            color: 'var(--color-success)',
+          }}
+        >
+          <CheckCircle2 size={32} />
         </div>
 
-        <h1 className="mt-6 text-2xl font-bold text-gray-900">Registration Submitted</h1>
-        <p className="mt-3 max-w-sm text-base text-gray-600">
-          {state.firstName ? `Thank you, ${state.firstName}. ` : ''}Your student registration has
-          been successfully submitted.
-        </p>
-        <p className="mt-2 max-w-sm text-base text-gray-600">
-          Your information will be processed for the SMCBI Health Kiosk.
+        <p className="mt-6 max-w-sm text-base font-semibold leading-7 auth-strong-text">
+          {state.firstName ? `Thank you, ${state.firstName}! ` : 'Thank you! '}
+          We appreciate you registering with the SMCBI Health Kiosk. Your information has been
+          received successfully.
         </p>
 
-        <div className="mt-6">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-            Registration Status
+        <div
+          className="mt-6 flex w-full max-w-sm items-start gap-3 rounded-xl border p-4 text-left"
+          style={{
+            borderColor: 'var(--color-primary)',
+            backgroundColor: 'color-mix(in srgb, var(--color-primary), transparent 92%)',
+          }}
+        >
+          <KeyRound size={18} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
+          <p className="text-sm font-semibold leading-6 auth-strong-text">
+            Please don't forget your password — you'll need it soon to sign in once your account
+            is set up on the Health Kiosk.
           </p>
-          <span className="mt-2 inline-block rounded-full bg-amber-100 px-4 py-1.5 text-sm font-semibold uppercase tracking-wide text-amber-800">
-            Pending
-          </span>
         </div>
 
-        <p className="mt-10 text-sm text-gray-400">You may now close this page.</p>
+        <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:flex-row">
+          <Button variant="secondary" className="flex-1" onClick={() => navigate('/register')}>
+            <UserPlus size={18} />
+            Register Another
+          </Button>
+        </div>
+
+        <p className="mt-6 text-sm font-semibold auth-muted-text">
+          You may now close this page, or register another student above.
+        </p>
       </div>
     </PortalShell>
   )

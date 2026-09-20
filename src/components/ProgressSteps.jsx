@@ -1,3 +1,5 @@
+import { Check } from 'lucide-react'
+
 const STEPS = [
   { number: 1, label: 'Role' },
   { number: 2, label: 'Academic' },
@@ -10,45 +12,43 @@ export default function ProgressSteps({ currentStep }) {
   return (
     <div className="mb-8">
       <div className="flex items-center">
-        {STEPS.map((step, index) => {
-          const isComplete = currentStep > step.number
-          const isActive = currentStep === step.number
+      {STEPS.map((step, index) => {
+        const complete = currentStep > step.number
+        const active = currentStep === step.number
 
-          return (
-            <div key={step.number} className="flex flex-1 items-center last:flex-none">
-              <div className="flex flex-col items-center">
-                <div
-                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                    isComplete
-                      ? 'bg-primary-800 text-white'
-                      : isActive
-                        ? 'border-2 border-primary-800 bg-white text-primary-800'
-                        : 'border-2 border-gray-300 bg-white text-gray-400'
-                  }`}
-                  aria-current={isActive ? 'step' : undefined}
-                >
-                  {isComplete ? '✓' : step.number}
-                </div>
-                <span
-                  className={`mt-1.5 hidden text-xs font-medium sm:block ${
-                    isActive ? 'text-primary-900' : 'text-gray-400'
-                  }`}
-                >
-                  {step.label}
-                </span>
+        return (
+          <div key={step.number} className="flex flex-1 items-center last:flex-none">
+            <div className="flex items-center gap-2">
+              <div
+                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border text-xs font-black"
+                style={{
+                  backgroundColor: active
+                    ? 'color-mix(in srgb, var(--color-primary) 16%, transparent)'
+                    : complete
+                      ? 'var(--color-primary)'
+                      : 'var(--auth-control)',
+                  borderColor: active || complete ? 'var(--color-primary)' : 'var(--auth-border)',
+                  color: active ? 'var(--color-primary)' : complete ? '#ffffff' : 'var(--auth-muted)',
+                }}
+                aria-current={active ? 'step' : undefined}
+              >
+                {complete ? <Check size={14} /> : step.number}
               </div>
-              {index < STEPS.length - 1 && (
-                <div
-                  className={`mx-1 h-0.5 flex-1 ${
-                    isComplete ? 'bg-primary-800' : 'bg-gray-200'
-                  }`}
-                />
-              )}
+              <span
+                className="hidden whitespace-nowrap text-sm font-black sm:block"
+                style={{ color: active || complete ? 'var(--auth-text)' : 'var(--auth-muted)' }}
+              >
+                {step.label}
+              </span>
             </div>
-          )
-        })}
+            {index < STEPS.length - 1 ? (
+              <div className="mx-3 h-px flex-1" style={{ backgroundColor: 'var(--auth-border)' }} />
+            ) : null}
+          </div>
+        )
+      })}
       </div>
-      <p className="mt-3 text-center text-sm font-medium text-gray-500 sm:hidden">
+      <p className="mt-3 text-center text-sm font-semibold auth-muted-text sm:hidden">
         Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].label}
       </p>
     </div>

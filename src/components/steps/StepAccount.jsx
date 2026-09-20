@@ -5,8 +5,8 @@ export default function StepAccount({ formData, errors, setField }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Account Information</h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <h2 className="text-xl font-black auth-strong-text">Account Information</h2>
+        <p className="mt-1 text-sm font-semibold auth-muted-text">
           This password will be used to prepare your Health Kiosk account.
         </p>
       </div>

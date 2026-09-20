@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Eye, EyeOff, Lock } from 'lucide-react'
 import FieldError from './FieldError'
 
 export default function PasswordField({
@@ -13,11 +14,15 @@ export default function PasswordField({
 
   return (
     <div>
-      <label htmlFor={name} className="mb-1.5 block text-sm font-medium text-gray-800">
+      <label htmlFor={name} className="text-sm font-black auth-strong-text">
         {label}
-        <span className="text-red-600"> *</span>
+        <span style={{ color: 'var(--color-error)' }}> *</span>
       </label>
-      <div className="relative">
+      <div
+        className="mt-2 flex h-[3.25rem] items-center gap-3 rounded-xl border px-4 auth-control"
+        style={{ borderColor: error ? 'var(--color-error)' : undefined }}
+      >
+        <Lock size={18} style={{ color: 'var(--color-muted)' }} />
         <input
           id={name}
           name={name}
@@ -27,17 +32,16 @@ export default function PasswordField({
           onChange={(event) => onChange(name, event.target.value)}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${name}-error` : undefined}
-          className={`min-h-[48px] w-full rounded-lg border bg-white px-4 py-3 pr-14 text-base text-gray-900 outline-none transition-colors focus:border-primary-700 focus:ring-2 focus:ring-primary-100 ${
-            error ? 'border-red-400' : 'border-gray-300'
-          }`}
+          className="w-full bg-transparent text-sm font-semibold outline-none"
         />
         <button
           type="button"
           onClick={() => setVisible((prev) => !prev)}
-          className="absolute inset-y-0 right-0 px-4 text-sm font-medium text-primary-700 hover:text-primary-900"
+          className="rounded-lg p-1 transition hover:scale-105"
+          style={{ color: 'var(--color-muted)' }}
           aria-label={visible ? 'Hide password' : 'Show password'}
         >
-          {visible ? 'Hide' : 'Show'}
+          {visible ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
       <div id={`${name}-error`}>
