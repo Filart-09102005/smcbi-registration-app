@@ -18,6 +18,18 @@
   --color-success: #16a34a;
   --color-error: #dc2626;
 
+  /* Categorical chart palette (dataviz skill default, validated for CVD
+     separation and contrast against this theme's light/dark card surfaces -
+     see scripts/validate_palette.js). Fixed hue order, never cycled. */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+
   --auth-bg: #f8fbff;
   --auth-grid: rgba(15, 23, 42, 0.055);
   --auth-glow-a: rgba(37, 99, 235, 0.14);
@@ -43,6 +55,15 @@
 
   --color-success: #22c55e;
   --color-error: #ef4444;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
 
   --auth-bg: #020403;
   --auth-grid: rgba(255, 255, 255, 0.024);
@@ -70,6 +91,15 @@
 
     --color-success: #22c55e;
     --color-error: #ef4444;
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
 
     --auth-bg: #020403;
     --auth-grid: rgba(255, 255, 255, 0.024);
