@@ -7,13 +7,11 @@ import Alert from '../components/ui/Alert'
 import StepRoleDepartment from '../components/steps/StepRoleDepartment'
 import StepAcademic from '../components/steps/StepAcademic'
 import StepPersonal from '../components/steps/StepPersonal'
-import StepAccount from '../components/steps/StepAccount'
 import StepReview from '../components/steps/StepReview'
 import {
   validateStepRoleDepartment,
   validateStepAcademic,
   validateStepPersonal,
-  validateStepAccount,
 } from '../lib/validation'
 import { isSeniorHigh } from '../lib/academicOptions'
 import { DuplicateBarcodeError, DuplicateEmailError, RateLimitedError, submitRegistration } from '../lib/registrations'
@@ -32,11 +30,9 @@ const INITIAL_FORM_DATA = {
   email: '',
   birthday: '',
   gender: '',
-  password: '',
-  confirmPassword: '',
 }
 
-const TOTAL_STEPS = 5
+const TOTAL_STEPS = 4
 
 // Bot deterrents, not the actual security boundary - that's the per-IP rate
 // limit enforced in the database (see migration-005-security-hardening.sql).
@@ -50,7 +46,6 @@ const STEP_SUBTITLES = [
   'Choose your role and department',
   'Tell us your academic information',
   'Complete your personal details',
-  'Create your account password',
   'Review and submit your registration',
 ]
 
@@ -140,8 +135,6 @@ export default function RegisterPage() {
         }
       }
     }
-    if (step === 4) stepErrors = validateStepAccount(formData)
-
     setErrors(stepErrors)
     if (Object.keys(stepErrors).length === 0) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -182,7 +175,7 @@ export default function RegisterPage() {
 
   if (!isSupabaseConfigured) {
     return (
-      <PortalShell eyebrow="Registration" title="Create account">
+      <PortalShell eyebrow="Registration" title="Pre-register now">
         <Alert variant="error">
           Supabase is not configured. Set <code>VITE_SUPABASE_URL</code> and{' '}
           <code>VITE_SUPABASE_ANON_KEY</code> in your <code>.env</code> file, then restart the dev
@@ -195,7 +188,7 @@ export default function RegisterPage() {
   return (
     <PortalShell
       eyebrow="Registration"
-      title="Create account"
+      title="Pre-register now"
       subtitle={`Step ${step} of ${TOTAL_STEPS} - ${STEP_SUBTITLES[step - 1]}`}
     >
       {/* Honeypot: invisible to a real visitor (off-screen, unreachable by
@@ -236,8 +229,7 @@ export default function RegisterPage() {
             setBarcodeStatus={setBarcodeStatus}
           />
         )}
-        {step === 4 && <StepAccount formData={formData} errors={errors} setField={setField} />}
-        {step === 5 && <StepReview formData={formData} submitError={submitError} />}
+        {step === 4 && <StepReview formData={formData} submitError={submitError} />}
 
         <div
           className="mt-8 flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-between"

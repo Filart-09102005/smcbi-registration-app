@@ -109,6 +109,7 @@ export default function StepPersonal({
         value={formData.firstName}
         onChange={setField}
         error={errors.firstName}
+        placeholder="e.g. Juan"
         autoComplete="given-name"
         icon={UserRound}
       />
@@ -119,6 +120,7 @@ export default function StepPersonal({
         value={formData.lastName}
         onChange={setField}
         error={errors.lastName}
+        placeholder="e.g. Dela Cruz"
         autoComplete="family-name"
         icon={UserRound}
       />

@@ -9,11 +9,11 @@ export default function WelcomePage() {
   const navigate = useNavigate()
 
   return (
-    <PortalShell eyebrow="Get Started" title="Register your account">
+    <PortalShell eyebrow="Get Started" title="Start your pre-registration">
       <div className="space-y-6">
         <p className="text-base font-semibold leading-7 auth-muted-text">
-          Register your student information online. Your details will be reviewed and used to
-          prepare your account for the SMCBI Health Kiosk.
+          Submit your student information online — no password needed. Once it's reviewed and
+          approved, your account will be created for you on the SMCBI Health Kiosk.
         </p>
 
         {!isSupabaseConfigured && (

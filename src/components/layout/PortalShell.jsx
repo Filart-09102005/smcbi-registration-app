@@ -1,4 +1,4 @@
-import { GraduationCap, ShieldCheck, Sparkles } from 'lucide-react'
+import { CheckCircle2, GraduationCap, Sparkles } from 'lucide-react'
 import ThemeToggle from '../ui/ThemeToggle'
 
 export default function PortalShell({ children, eyebrow, title, subtitle }) {
@@ -22,7 +22,7 @@ export default function PortalShell({ children, eyebrow, title, subtitle }) {
             </p>
 
             <div className="mt-8 flex flex-wrap justify-center gap-2">
-              <StatusPill icon={ShieldCheck} label="Password never leaves your device as plain text" />
+              <StatusPill icon={CheckCircle2} label="No password needed - just your information" />
               <StatusPill icon={GraduationCap} label="Student Portal" />
               <StatusPill icon={Sparkles} label="~3-5 Minutes" />
             </div>

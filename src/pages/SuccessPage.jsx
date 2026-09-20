@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { CheckCircle2, KeyRound, UserPlus } from 'lucide-react'
+import { CheckCircle2, Info, UserPlus } from 'lucide-react'
 import Button from '../components/ui/Button'
 import PortalShell from '../components/layout/PortalShell'
 
@@ -41,10 +41,11 @@ export default function SuccessPage() {
             backgroundColor: 'color-mix(in srgb, var(--color-primary), transparent 92%)',
           }}
         >
-          <KeyRound size={18} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
+          <Info size={18} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
           <p className="text-sm font-semibold leading-6 auth-strong-text">
-            Please don't forget your password — you'll need it soon to sign in once your account
-            is set up on the Health Kiosk.
+            No password needed here — this is a pre-registration only. Once it's reviewed and
+            approved, your Health Kiosk account will be created for you. Ask the clinic for your
+            login details once that's ready.
           </p>
         </div>
 

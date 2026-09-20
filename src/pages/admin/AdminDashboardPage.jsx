@@ -15,12 +15,6 @@ const CHART_COLORS = [
   '#ef4444',
 ]
 
-const STATUS_META = [
-  { key: 'total', label: 'Total' },
-  { key: 'imported_count', label: 'Imported', color: 'var(--color-primary)' },
-  { key: 'rejected_count', label: 'Rejected', color: 'var(--color-error)' },
-]
-
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState(null)
   const [distribution, setDistribution] = useState(null)
@@ -77,8 +71,6 @@ export default function AdminDashboardPage() {
             <StatCard icon={School} label="BED" value={stats.bed_count} />
             <StatCard icon={Users} label="Personnel" value={stats.staff_count} />
           </div>
-
-          <StatusRow stats={stats} />
 
           <ProgramChart data={distribution.program} />
 
@@ -153,30 +145,6 @@ function StatCard({ icon: Icon, label, value }) {
           {label}
         </p>
       </div>
-    </div>
-  )
-}
-
-function StatusRow({ stats }) {
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      {STATUS_META.map((item) => (
-        <div
-          key={item.key}
-          className="rounded-xl border p-4 text-center"
-          style={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)' }}
-        >
-          <p
-            className="text-2xl font-black"
-            style={{ color: item.color ?? 'var(--color-text)' }}
-          >
-            {stats[item.key] ?? 0}
-          </p>
-          <p className="mt-0.5 text-[0.7rem] font-bold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>
-            {item.label}
-          </p>
-        </div>
-      ))}
     </div>
   )
 }

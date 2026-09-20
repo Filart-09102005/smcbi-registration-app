@@ -2,8 +2,8 @@ import { supabase } from './supabaseClient'
 
 const TABLE = 'student_registrations'
 
-// Never select password_hash - nothing in the admin UI should ever be able
-// to render it, so it is simply never fetched.
+// This is a pre-registration record, not an account - there is no password
+// column to accidentally select in the first place.
 const SAFE_COLUMNS =
   'id, role, firstname, lastname, barcode, email, birthday, gender, department, program, ' +
   'year_level, grade_level, strand, status, submitted_at, reviewed_at, imported_at'

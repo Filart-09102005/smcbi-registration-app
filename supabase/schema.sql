@@ -26,8 +26,11 @@ create table if not exists public.student_registrations (
   email text not null check (
     email = lower(email) and email like '%@smcbi.edu.ph' and char_length(email) <= 255
   ),
-  password_hash text not null,
 
+  -- No password here, ever. This table is a PRE-registration, not an
+  -- account - the Health Kiosk creates the actual login (and its initial
+  -- password) at bulk-import time, same as when an admin adds a user there
+  -- directly.
   birthday date not null check (birthday < current_date),
   gender text not null check (gender in ('male', 'female')),
 

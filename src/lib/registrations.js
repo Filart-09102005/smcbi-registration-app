@@ -1,8 +1,6 @@
-import bcrypt from 'bcryptjs'
 import { isSeniorHigh } from './academicOptions'
 import { supabase } from './supabaseClient'
 
-const BCRYPT_ROUNDS = 10
 const UNIQUE_VIOLATION = '23505'
 
 export class DuplicateEmailError extends Error {
@@ -45,7 +43,6 @@ export async function checkBarcodeExists(barcode) {
 }
 
 export async function submitRegistration(formData) {
-  const passwordHash = await bcrypt.hash(formData.password, BCRYPT_ROUNDS)
   const seniorHigh = isSeniorHigh(formData.gradeLevel)
   const isStudent = formData.role !== 'personnel'
 
@@ -55,7 +52,6 @@ export async function submitRegistration(formData) {
     lastname: formData.lastName.trim(),
     email: formData.email.trim().toLowerCase(),
     barcode: formData.schoolId.trim(),
-    password_hash: passwordHash,
     birthday: formData.birthday,
     gender: formData.gender,
     department: formData.department,

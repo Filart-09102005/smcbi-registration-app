@@ -86,11 +86,6 @@ export default function StepReview({ formData, submitError }) {
           </>
         )}
       </Section>
-
-      <p className="text-xs font-semibold auth-muted-text">
-        Your password is not shown here for security and will not be included in any exported
-        file.
-      </p>
     </div>
   )
 }

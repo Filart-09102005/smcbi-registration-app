@@ -1,5 +1,4 @@
 import { isSeniorHigh } from './academicOptions'
-import { isPasswordValid } from './password'
 
 const SCHOOL_EMAIL_DOMAIN = '@smcbi.edu.ph'
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -86,24 +85,6 @@ export function validateStepPersonal(formData) {
   }
 
   if (!formData.gender) errors.gender = 'Please select your gender.'
-
-  return errors
-}
-
-export function validateStepAccount(formData) {
-  const errors = {}
-
-  if (!formData.password) {
-    errors.password = 'Please enter a password.'
-  } else if (!isPasswordValid(formData.password)) {
-    errors.password = 'Password does not meet all requirements.'
-  }
-
-  if (!formData.confirmPassword) {
-    errors.confirmPassword = 'Please confirm your password.'
-  } else if (formData.password !== formData.confirmPassword) {
-    errors.confirmPassword = 'Passwords do not match.'
-  }
 
   return errors
 }

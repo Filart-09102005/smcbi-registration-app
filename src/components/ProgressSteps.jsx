@@ -4,8 +4,7 @@ const STEPS = [
   { number: 1, label: 'Role' },
   { number: 2, label: 'Academic' },
   { number: 3, label: 'Personal' },
-  { number: 4, label: 'Account' },
-  { number: 5, label: 'Review' },
+  { number: 4, label: 'Review' },
 ]
 
 export default function ProgressSteps({ currentStep }) {
