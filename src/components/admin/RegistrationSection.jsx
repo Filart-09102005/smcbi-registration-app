@@ -5,6 +5,7 @@ import {
   Eye,
   FileSpreadsheet,
   FileText,
+  Loader2,
   Pencil,
   RotateCcw,
   Search,
@@ -13,7 +14,8 @@ import {
 import AdminSelect from './AdminSelect'
 import RegistrationEditModal from './RegistrationEditModal'
 import ConfirmDialog from './ConfirmDialog'
-import ExportOverlay from './ExportOverlay'
+import ExcelPreviewModal from './ExcelPreviewModal'
+import PdfPreviewModal from './PdfPreviewModal'
 import { deleteRegistration, fetchAllMatching, fetchRegistrations } from '../../lib/adminApi'
 import {
   GENDERS,
@@ -29,7 +31,7 @@ import {
   STAFF_DEPARTMENTS,
 } from '../../lib/academicOptions'
 import { calculateAge } from '../../lib/validation'
-import { exportExcel, exportPDF } from '../../lib/exportRegistrations'
+import { toExportRows } from '../../lib/exportRegistrations'
 
 const ALL_DEPARTMENTS = [...STUDENT_DEPARTMENTS, ...STAFF_DEPARTMENTS]
 
@@ -50,7 +52,7 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-const EMPTY_EXPORT = { open: false, format: null, status: 'running', count: 0, truncated: false }
+const EMPTY_PREVIEW = { kind: null, rows: null, truncated: false }
 
 export default function RegistrationSection({ onOpenDetail, refreshToken }) {
   const [search, setSearch] = useState('')
@@ -72,7 +74,9 @@ export default function RegistrationSection({ onOpenDetail, refreshToken }) {
   const [editing, setEditing] = useState(null)
   const [confirmingDelete, setConfirmingDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
-  const [exportState, setExportState] = useState(EMPTY_EXPORT)
+  const [preview, setPreview] = useState(EMPTY_PREVIEW)
+  const [preparingExport, setPreparingExport] = useState(null)
+  const [exportError, setExportError] = useState('')
 
   const isCollege = department === 'COLLEGE'
   const isBed = department === 'BED'
@@ -173,21 +177,21 @@ export default function RegistrationSection({ onOpenDetail, refreshToken }) {
   }
 
   // Exports always run against fetchAllMatching with the SAME filters
-  // currently applied on screen - never the full table - so a download only
-  // ever contains what's actually being viewed/filtered at that moment.
-  async function runExport(format) {
-    const pdfWindow = format === 'pdf' ? window.open('', '_blank') : null
-
-    setExportState({ open: true, format, status: 'running', count: 0 })
+  // currently applied on screen - never the full table - so a preview/
+  // download only ever contains what's actually being viewed/filtered at
+  // that moment. The fetched rows are converted once here and handed to the
+  // preview modal, which reuses that exact array for both the on-screen
+  // preview and the file it builds - so the two can never disagree.
+  async function openPreview(kind) {
+    setPreparingExport(kind)
+    setExportError('')
     try {
       const { rows: matching, truncated } = await fetchAllMatching({ search, filters: activeFilters })
-      const filename = 'smcbi-students'
-      if (format === 'pdf') await exportPDF(matching, `${filename}.pdf`, pdfWindow)
-      else await exportExcel(matching, `${filename}.xlsx`)
-      setExportState({ open: true, format, status: 'success', count: matching.length, truncated })
+      setPreview({ kind, rows: toExportRows(matching), truncated })
     } catch {
-      pdfWindow?.close()
-      setExportState({ open: true, format, status: 'error', count: 0 })
+      setExportError('Could not load registrations for export. Please try again.')
+    } finally {
+      setPreparingExport(null)
     }
   }
 
@@ -286,23 +290,27 @@ export default function RegistrationSection({ onOpenDetail, refreshToken }) {
           <div className="ml-1 flex items-center gap-2 border-l pl-2" style={{ borderColor: 'var(--color-border)' }}>
             <button
               type="button"
-              onClick={() => runExport('pdf')}
-              disabled={exportState.open || total === 0}
+              onClick={() => openPreview('excel')}
+              disabled={Boolean(preparingExport) || total === 0}
               className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
-              <FileText size={14} />
-              PDF
+              {preparingExport === 'excel' ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <FileSpreadsheet size={14} />
+              )}
+              Download Excel
             </button>
             <button
               type="button"
-              onClick={() => runExport('excel')}
-              disabled={exportState.open || total === 0}
+              onClick={() => openPreview('pdf')}
+              disabled={Boolean(preparingExport) || total === 0}
               className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-card)' }}
             >
-              <FileSpreadsheet size={14} />
-              Excel
+              {preparingExport === 'pdf' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+              Download PDF
             </button>
           </div>
         </div>
@@ -333,9 +341,14 @@ export default function RegistrationSection({ onOpenDetail, refreshToken }) {
             </span>
           )}
           <span className="text-xs font-semibold" style={{ color: 'var(--color-muted)' }}>
-            &middot; PDF/Excel export only the registrations matching these filters.
+            &middot; Excel/PDF export only includes the registrations matching these filters.
           </span>
         </div>
+        {exportError && (
+          <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--color-error)' }}>
+            {exportError}
+          </p>
+        )}
       </div>
 
       {error ? (
@@ -513,16 +526,21 @@ export default function RegistrationSection({ onOpenDetail, refreshToken }) {
         />
       )}
 
-      <ExportOverlay
-        open={exportState.open}
-        format={exportState.format}
-        status={exportState.status}
-        count={exportState.count}
-        truncated={exportState.truncated}
-        resultAction={exportState.format === 'pdf' ? 'opened in a new tab' : 'downloaded'}
-        onDone={() => setExportState(EMPTY_EXPORT)}
-        onRetry={() => runExport(exportState.format)}
-      />
+      {preview.kind === 'excel' && (
+        <ExcelPreviewModal
+          rows={preview.rows}
+          truncated={preview.truncated}
+          onClose={() => setPreview(EMPTY_PREVIEW)}
+        />
+      )}
+
+      {preview.kind === 'pdf' && (
+        <PdfPreviewModal
+          rows={preview.rows}
+          truncated={preview.truncated}
+          onClose={() => setPreview(EMPTY_PREVIEW)}
+        />
+      )}
     </div>
   )
 }

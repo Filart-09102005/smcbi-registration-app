@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,7 +14,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
-    "bcryptjs": "^2.4.3",
     "docx": "^9.7.1",
     "exceljs": "^4.4.0",
     "framer-motion": "^11.18.2",
